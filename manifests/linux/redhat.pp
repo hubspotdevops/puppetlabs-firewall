@@ -16,7 +16,8 @@ class firewall::linux::redhat (
   $ensure = running,
   $enable = true
 ) {
-  service { 'iptables':
+
+  service { ['iptables', 'ip6tables']:
     ensure    => $ensure,
     enable    => $enable,
     hasstatus => true,
