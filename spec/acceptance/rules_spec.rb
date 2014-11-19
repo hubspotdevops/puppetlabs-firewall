@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'complex ruleset 1' do
+describe 'complex ruleset 1', :unless => UNSUPPORTED_PLATFORMS.include?(fact('osfamily')) do
   before :all do
     iptables_flush_all_tables
   end
@@ -223,7 +223,9 @@ describe 'complex ruleset 2' do
 
     # Run it twice and test for idempotency
     apply_manifest(pp, :catch_failures => true)
-    apply_manifest(pp, :catch_changes => true)
+    unless fact('selinux') == 'true'
+      apply_manifest(pp, :catch_changes => true)
+    end
   end
 
   it 'contains appropriate rules' do

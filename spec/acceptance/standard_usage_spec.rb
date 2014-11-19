@@ -1,7 +1,7 @@
 require 'spec_helper_acceptance'
 
 # Some tests for the standard recommended usage
-describe 'standard usage tests:' do
+describe 'standard usage tests:', :unless => UNSUPPORTED_PLATFORMS.include?(fact('osfamily')) do
   it 'applies twice' do
     pp = <<-EOS
       class my_fw::pre {
@@ -50,6 +50,8 @@ describe 'standard usage tests:' do
 
     # Run it twice and test for idempotency
     apply_manifest(pp, :catch_failures => true)
-    expect(apply_manifest(pp, :catch_failures => true).exit_code).to be_zero
+    unless fact('selinux') == 'true'
+      apply_manifest(pp, :catch_changes => true)
+    end
   end
 end

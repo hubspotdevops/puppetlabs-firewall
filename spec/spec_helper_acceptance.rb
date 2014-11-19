@@ -12,18 +12,19 @@ def ip6tables_flush_all_tables
   end
 end
 
-unless ENV['RS_PROVISION'] == 'no'
+unless ENV['RS_PROVISION'] == 'no' or ENV['BEAKER_provision'] == 'no'
+  # This will install the latest available package on el and deb based
+  # systems fail on windows and osx, and install via gem on other *nixes
+  foss_opts = { :default_action => 'gem_install' }
+
+  if default.is_pe?; then install_pe; else install_puppet( foss_opts ); end
+
   hosts.each do |host|
-    # Install Puppet
-    if host.is_pe?
-      install_pe
-    else
-      install_package host, 'rubygems'
-      on host, 'gem install puppet --no-ri --no-rdoc'
-      on host, "mkdir -p #{host['distmoduledir']}"
-    end
+    on host, "mkdir -p #{host['distmoduledir']}"
   end
 end
+
+UNSUPPORTED_PLATFORMS = ['windows','Solaris','Darwin']
 
 RSpec.configure do |c|
   # Project root
@@ -35,10 +36,10 @@ RSpec.configure do |c|
   # Configure all nodes in nodeset
   c.before :suite do
     # Install module and dependencies
-    puppet_module_install(:source => proj_root, :module_name => 'firewall')
     hosts.each do |host|
-      shell('/bin/touch /etc/puppet/hiera.yaml')
-      shell('puppet module install puppetlabs-stdlib --version 3.2.0', { :acceptable_exit_codes => [0,1] })
+      copy_module_to(host, :source => proj_root, :module_name => 'firewall')
+      on(host, "/bin/touch #{host['hieraconf']}")
+      on host, puppet('module install puppetlabs-stdlib --version 3.2.0'), { :acceptable_exit_codes => [0,1] }
     end
   end
 end
