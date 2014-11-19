@@ -116,11 +116,21 @@ describe 'Puppet::Util::Firewall' do
     describe 'when proto is IPv4' do
       let(:proto) { 'IPv4' }
 
-      it 'should exec for RedHat identified from osfamily' do
+      it 'should exec /sbin/service if running RHEL 6 or earlier' do
         allow(Facter.fact(:osfamily)).to receive(:value).and_return('RedHat')
         allow(Facter.fact(:operatingsystem)).to receive(:value).and_return('RedHat')
+        allow(Facter.fact(:operatingsystemrelease)).to receive(:value).and_return('6')
 
         expect(subject).to receive(:execute).with(%w{/sbin/service iptables save})
+        subject.persist_iptables(proto)
+      end
+
+      it 'should exec for systemd if running RHEL 7 or greater' do
+        allow(Facter.fact(:osfamily)).to receive(:value).and_return('RedHat')
+        allow(Facter.fact(:operatingsystem)).to receive(:value).and_return('RedHat')
+        allow(Facter.fact(:operatingsystemrelease)).to receive(:value).and_return('7')
+
+        expect(subject).to receive(:execute).with(%w{/usr/libexec/iptables/iptables.init save})
         subject.persist_iptables(proto)
       end
 
@@ -129,14 +139,23 @@ describe 'Puppet::Util::Firewall' do
         allow(Facter.fact(:operatingsystem)).to receive(:value).and_return('Fedora')
         allow(Facter.fact(:operatingsystemrelease)).to receive(:value).and_return('15')
 
-        expect(subject).to receive(:execute).with(%w{/usr/libexec/iptables.init save})
+        expect(subject).to receive(:execute).with(%w{/usr/libexec/iptables/iptables.init save})
         subject.persist_iptables(proto)
       end
 
-      it 'should exec for CentOS identified from operatingsystem' do
+      it 'should exec for CentOS 6 identified from operatingsystem and operatingsystemrelease' do
         allow(Facter.fact(:osfamily)).to receive(:value).and_return(nil)
         allow(Facter.fact(:operatingsystem)).to receive(:value).and_return('CentOS')
+        allow(Facter.fact(:operatingsystemrelease)).to receive(:value).and_return('6.5')
         expect(subject).to receive(:execute).with(%w{/sbin/service iptables save})
+        subject.persist_iptables(proto)
+      end
+
+      it 'should exec for CentOS 7 identified from operatingsystem and operatingsystemrelease' do
+        allow(Facter.fact(:osfamily)).to receive(:value).and_return(nil)
+        allow(Facter.fact(:operatingsystem)).to receive(:value).and_return('CentOS')
+        allow(Facter.fact(:operatingsystemrelease)).to receive(:value).and_return('7.0.1406')
+        expect(subject).to receive(:execute).with(%w{/usr/libexec/iptables/iptables.init save})
         subject.persist_iptables(proto)
       end
 
@@ -149,6 +168,7 @@ describe 'Puppet::Util::Firewall' do
       it 'should raise a warning when exec fails' do
         allow(Facter.fact(:osfamily)).to receive(:value).and_return('RedHat')
         allow(Facter.fact(:operatingsystem)).to receive(:value).and_return('RedHat')
+        allow(Facter.fact(:operatingsystemrelease)).to receive(:value).and_return('6')
 
         expect(subject).to receive(:execute).with(%w{/sbin/service iptables save}).
           and_raise(Puppet::ExecutionFailure, 'some error')
