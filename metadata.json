@@ -1,8 +1,8 @@
 {
   "name": "puppetlabs-firewall",
-  "version": "1.2.0",
+  "version": "1.5.0",
   "author": "Puppet Labs",
-  "summary": "Manages Firewalls such as iptable",
+  "summary": "Manages Firewalls such as iptables",
   "license": "Apache-2.0",
   "source": "https://github.com/puppetlabs/puppetlabs-firewall",
   "project_page": "http://github.com/puppetlabs/puppetlabs-firewall",
@@ -42,7 +42,8 @@
     {
       "operatingsystem": "SLES",
       "operatingsystemrelease": [
-        "11 SP1"
+        "11 SP1",
+        "12"
       ]
     },
     {
@@ -59,6 +60,12 @@
         "12.04",
         "14.04"
       ]
+    },
+    {
+      "operatingsystem": "Gentoo",
+      "operatingsystemrelease": [
+        "1.0"
+      ]
     }
   ],
   "requirements": [
@@ -72,6 +79,6 @@
     }
   ],
   "dependencies": [
-  
+
   ]
 }

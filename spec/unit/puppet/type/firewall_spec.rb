@@ -82,7 +82,7 @@ describe firewall do
   end
 
   describe ':proto' do
-    [:tcp, :udp, :icmp, :esp, :ah, :vrrp, :igmp, :ipencap, :ospf, :gre, :all].each do |proto|
+    [:tcp, :udp, :icmp, :esp, :ah, :vrrp, :igmp, :ipencap, :ipv4, :ipv6, :ospf, :gre, :all].each do |proto|
       it "should accept proto value #{proto}" do
         @resource[:proto] = proto
         @resource[:proto].should == proto
@@ -219,7 +219,7 @@ describe firewall do
     end
   end
 
-  [:tosource, :todest].each do |addr|
+  [:tosource, :todest, :to].each do |addr|
     describe addr do
       it "should accept #{addr} value as a string" do
         @resource[addr] = '127.0.0.1'
